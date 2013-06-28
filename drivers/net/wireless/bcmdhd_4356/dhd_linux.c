@@ -3,13 +3,13 @@
  * Basically selected code segments from usb-cdc.c and usb-rndis.c
  *
  * Copyright (C) 1999-2015, Broadcom Corporation
- * 
+ *
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
  * following added to such license:
- * 
+ *
  *      As a special exception, the copyright holders of this software give you
  * permission to link this software with independent modules, and to copy and
  * distribute the resulting executable under terms of your choice, provided that
@@ -17,7 +17,7 @@
  * the license of that module.  An independent module is a module which is not
  * derived from this software.  The special exception does not apply to any
  * modifications of the software.
- * 
+ *
  *      Notwithstanding the above, under no circumstances may you combine this
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
@@ -31,10 +31,10 @@
 #ifdef SHOW_LOGTRACE
 #include <linux/syscalls.h>
 #include <event_log.h>
-#endif 
+#endif
 #ifdef DHD_DEBUG
 #include <linux/syscalls.h>
-#endif 
+#endif
 
 
 #include <linux/init.h>
@@ -9578,31 +9578,28 @@ user_triger_write_to_file(dhd_pub_t *dhd, uint8 *buf, int size)
 		ret = -1;
 		goto exit;
 	}
-	
+
 	fp_dumpfile->f_op->write(fp_dumpfile, buf, size, &pos);
 #ifdef USE_STATIC_MEMDUMP
 	fp_dumpfile->f_op->fsync(fp_dumpfile, 0, size-1, 1);
-#endif 
+#endif
 
 exit:
 	if (memblock) {
 		kfree(memblock);
 		memblock = NULL;
 	}
-	
 #ifdef USE_STATIC_MEMDUMP
 	DHD_OS_PREFREE(dhd, buf, size);
 #else
 	MFREE(dhd->osh, buf, size);
-#endif 
-	
+#endif
 	if (fp_dumpfile)
 		filp_close(fp_dumpfile, current->files);
-	
 	set_fs(old_fs);
 	return ret;
 }
-#endif 
+#endif
 
 int
 write_to_file(dhd_pub_t *dhd, uint8 *buf, int size)
@@ -9637,13 +9634,11 @@ write_to_file(dhd_pub_t *dhd, uint8 *buf, int size)
 		__FUNCTION__, MAX_BUFF_SIZE));
 		goto exit;
 	}
-#endif 
+#endif
 
-	
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 
-	
 #ifdef CUSTOMER_HW_ONE
 	_mkdir(FW_RAMDUMP_PATH);
 	if (!(ret = parse_timetag(memblock, &record_slot, recordtime, fwtrigger))) {
@@ -9657,42 +9652,37 @@ write_to_file(dhd_pub_t *dhd, uint8 *buf, int size)
 	fp = filp_open(filename, O_WRONLY|O_CREAT, 0666);
 #else
 	fp = filp_open("/tmp/mem_dump", O_WRONLY|O_CREAT, 0666);
-#endif 
+#endif
 	if (!fp) {
 		DHD_ERROR(("%s: open file error\n", __FUNCTION__));
 		ret = -1;
 		goto exit;
 	}
 
-	
 	fp->f_op->write(fp, buf, size, &pos);
 #ifdef USE_STATIC_MEMDUMP
 	fp->f_op->fsync(fp, 0, size-1, 1);
-#endif 
+#endif
 
 exit:
 #ifdef CUSTOMER_HW_ONE
-	
 	if (memblock) {
 		kfree(memblock);
 		memblock = NULL;
 	}
 #endif
-	
 #ifdef USE_STATIC_MEMDUMP
 	DHD_OS_PREFREE(dhd, buf, size);
 #else
 	MFREE(dhd->osh, buf, size);
-#endif 
-	
+#endif
 	if (fp)
 		filp_close(fp, current->files);
-	
 	set_fs(old_fs);
 
 	return ret;
 }
-#endif 
+#endif
 
 int dhd_os_wake_lock_timeout(dhd_pub_t *pub)
 {
@@ -9707,10 +9697,10 @@ int dhd_os_wake_lock_timeout(dhd_pub_t *pub)
 #ifdef CONFIG_HAS_WAKELOCK
 		if (dhd->wakelock_rx_timeout_enable)
 			wake_lock_timeout(&dhd->wl_rxwake,
-				msecs_to_jiffies(dhd->wakelock_rx_timeout_enable));
+				msecs_to_jiffies(dhd->wakelock_rx_timeout_enable)/4);
 		if (dhd->wakelock_ctrl_timeout_enable)
 			wake_lock_timeout(&dhd->wl_ctrlwake,
-				msecs_to_jiffies(dhd->wakelock_ctrl_timeout_enable));
+				msecs_to_jiffies(dhd->wakelock_ctrl_timeout_enable)/4);
 #endif
 		dhd->wakelock_rx_timeout_enable = 0;
 		dhd->wakelock_ctrl_timeout_enable = 0;
