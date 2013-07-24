@@ -219,7 +219,7 @@ static bool can_stop_full_tick(void)
 		 * Don't allow the user to think they can get
 		 * full NO_HZ with this machine.
 		 */
-		WARN_ONCE(have_nohz_full_mask,
+		WARN_ONCE(tick_nohz_full_running,
 			  "NO_HZ FULL will not work with unstable sched clock");
 		return false;
 	}
