@@ -940,35 +940,33 @@ struct task_struct {
 #endif
 	int exit_state;
 	int exit_code, exit_signal;
-	int pdeath_signal;  
-	unsigned int jobctl;	
+	int pdeath_signal;
+	unsigned int jobctl;
 
-	
 	unsigned int personality;
 
 	unsigned did_exec:1;
-	unsigned in_execve:1;	
+	unsigned in_execve:1;
 	unsigned in_iowait:1;
 
-	
-	unsigned no_new_privs:1;
-
-	
+	/* Revert to default priority/policy when forking */
 	unsigned sched_reset_on_fork:1;
 	unsigned sched_contributes_to_load:1;
+
+	unsigned long atomic_flags; /* Flags needing atomic access. */
 
 	pid_t pid;
 	pid_t tgid;
 
 #ifdef CONFIG_CC_STACKPROTECTOR
-	
+
 	unsigned long stack_canary;
 #endif
-	struct task_struct __rcu *real_parent; 
-	struct task_struct __rcu *parent; 
-	struct list_head children;	
-	struct list_head sibling;	
-	struct task_struct *group_leader;	
+	struct task_struct __rcu *real_parent;
+	struct task_struct __rcu *parent;
+	struct list_head children;
+	struct list_head sibling;
+	struct task_struct *group_leader;
 
 	struct list_head ptraced;
 	struct list_head ptrace_entry;
@@ -1438,15 +1436,31 @@ static inline void memalloc_noio_restore(unsigned int flags)
 	current->flags = (current->flags & ~PF_MEMALLOC_NOIO) | flags;
 }
 
-#define JOBCTL_STOP_SIGMASK	0xffff	
+/* Per-process atomic flags. */
+#define PFA_NO_NEW_PRIVS 0x00000001	/* May not gain new privileges. */
 
-#define JOBCTL_STOP_DEQUEUED_BIT 16	
-#define JOBCTL_STOP_PENDING_BIT	17	
-#define JOBCTL_STOP_CONSUME_BIT	18	
-#define JOBCTL_TRAP_STOP_BIT	19	
-#define JOBCTL_TRAP_NOTIFY_BIT	20	
-#define JOBCTL_TRAPPING_BIT	21	
-#define JOBCTL_LISTENING_BIT	22	
+static inline bool task_no_new_privs(struct task_struct *p)
+{
+	return test_bit(PFA_NO_NEW_PRIVS, &p->atomic_flags);
+}
+
+static inline void task_set_no_new_privs(struct task_struct *p)
+{
+	set_bit(PFA_NO_NEW_PRIVS, &p->atomic_flags);
+}
+
+/*
+ * task->jobctl flags
+ */
+#define JOBCTL_STOP_SIGMASK	0xffff	/* signr of the last group stop */
+
+#define JOBCTL_STOP_DEQUEUED_BIT 16
+#define JOBCTL_STOP_PENDING_BIT	17
+#define JOBCTL_STOP_CONSUME_BIT	18
+#define JOBCTL_TRAP_STOP_BIT	19
+#define JOBCTL_TRAP_NOTIFY_BIT	20
+#define JOBCTL_TRAPPING_BIT	21
+#define JOBCTL_LISTENING_BIT	22
 
 #define JOBCTL_STOP_DEQUEUED	(1 << JOBCTL_STOP_DEQUEUED_BIT)
 #define JOBCTL_STOP_PENDING	(1 << JOBCTL_STOP_PENDING_BIT)
