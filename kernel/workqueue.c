@@ -615,8 +615,8 @@ struct task_struct *wq_worker_sleeping(struct task_struct *task, int cpu)
 
 	pool = worker->pool;
 
-	
-	if (WARN_ON_ONCE(cpu != raw_smp_processor_id()))
+	/* this can only happen on the local cpu */
+	if (WARN_ON_ONCE(cpu != raw_smp_processor_id() || pool->cpu != cpu))
 		return NULL;
 
 	if (atomic_dec_and_test(&pool->nr_running) &&
