@@ -2391,12 +2391,11 @@ static void put_unbound_pool(struct worker_pool *pool)
 	if (--pool->refcnt)
 		return;
 
-	
-	if (WARN_ON(!(pool->flags & POOL_DISASSOCIATED)) ||
+	/* sanity checks */
+	if (WARN_ON(!(pool->cpu < 0)) ||
 	    WARN_ON(!list_empty(&pool->worklist)))
 		return;
 
-	
 	if (pool->id >= 0)
 		idr_remove(&worker_pool_idr, pool->id);
 	hash_del(&pool->hash_node);
