@@ -18,10 +18,6 @@
 #ifndef _LINUX_WAKEUP_REASON_H
 #define _LINUX_WAKEUP_REASON_H
 
-#include <linux/types.h>
-
-void log_wakeup_reason(int irq);
-const int* get_wakeup_reasons(size_t *len);
-void clear_wakeup_reasons(void);
+#define MAX_SUSPEND_ABORT_LEN 256
 
 #endif /* _LINUX_WAKEUP_REASON_H */
