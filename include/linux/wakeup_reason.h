@@ -20,4 +20,6 @@
 
 #define MAX_SUSPEND_ABORT_LEN 256
 
+int check_wakeup_reason(int irq);
+
 #endif /* _LINUX_WAKEUP_REASON_H */
