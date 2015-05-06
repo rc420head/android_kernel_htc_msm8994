@@ -74,7 +74,8 @@ static int set_window_count;
 static int migration_register_count;
 static struct mutex sched_lock;
 
-#define DEFAULT_TARGET_LOAD 90
+/* Target load.  Lower values result in higher CPU speeds. */
+#define DEFAULT_TARGET_LOAD 85
 static unsigned int default_target_loads[] = {DEFAULT_TARGET_LOAD};
 
 #define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
@@ -85,32 +86,30 @@ static unsigned int default_above_hispeed_delay[] = {
 atomic_t notifier_usage_count;
 struct cpufreq_interactive_tunables {
 	int usage_count;
-	
 	unsigned int hispeed_freq;
-	
-#define DEFAULT_GO_HISPEED_LOAD 99
+	/* Go to hi speed when CPU load at or above this value. */
+#define DEFAULT_GO_HISPEED_LOAD 90
 	unsigned long go_hispeed_load;
-	
 	spinlock_t target_loads_lock;
 	unsigned int *target_loads;
 	int ntarget_loads;
-#define DEFAULT_MIN_SAMPLE_TIME (80 * USEC_PER_MSEC)
+	/*
+	 * The minimum amount of time to spend at a frequency before we can ramp
+	 * down.
+	 */
+#define DEFAULT_MIN_SAMPLE_TIME (40 * USEC_PER_MSEC)
 	unsigned long min_sample_time;
 	unsigned long timer_rate;
 	spinlock_t above_hispeed_delay_lock;
 	unsigned int *above_hispeed_delay;
 	int nabove_hispeed_delay;
-	
 	int boost_val;
-	
 	int boostpulse_duration_val;
-	
 	u64 boostpulse_endtime;
 #define DEFAULT_TIMER_SLACK (4 * DEFAULT_TIMER_RATE)
 	int timer_slack_val;
 	bool io_is_busy;
 
-	
 	bool use_sched_load;
 	bool use_migration_notif;
 
