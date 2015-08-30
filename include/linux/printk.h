@@ -94,7 +94,10 @@ asmlinkage int printk_emit(int facility, int level,
 asmlinkage __printf(1, 2) __cold
 int printk(const char *fmt, ...);
 
-__printf(1, 2) __cold int printk_sched(const char *fmt, ...);
+/*
+ * Special printk facility for scheduler/timekeeping use only, _DO_NOT_USE_ !
+ */
+__printf(1, 2) __cold int printk_deferred(const char *fmt, ...);
 
 extern int __printk_ratelimit(const char *func);
 #define printk_ratelimit() __printk_ratelimit(__func__)
@@ -124,7 +127,7 @@ int printk(const char *s, ...)
 	return 0;
 }
 static inline __printf(1, 2) __cold
-int printk_sched(const char *s, ...)
+int printk_deferred(const char *s, ...)
 {
 	return 0;
 }
