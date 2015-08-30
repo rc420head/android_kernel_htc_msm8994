@@ -2022,11 +2022,19 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		if (ep->skip)
 			td_num--;
 
-		
 		event_seg = trb_in_td(ep_ring->deq_seg, ep_ring->dequeue,
 				td->last_trb, event_dma);
 
-		if (!event_seg && trb_comp_code == COMP_STOP_INVAL) {
+		/*
+		 * Skip the Force Stopped Event. The event_trb(event_dma) of FSE
+		 * is not in the current TD pointed by ep_ring->dequeue because
+		 * that the hardware dequeue pointer still at the previous TRB
+		 * of the current TD. The previous TRB maybe a Link TD or the
+		 * last TRB of the previous TD. The command completion handle
+		 * will take care the rest.
+		 */
+		if (!event_seg && (trb_comp_code == COMP_STOP ||
+				   trb_comp_code == COMP_STOP_INVAL)) {
 			ret = 0;
 			goto cleanup;
 		}

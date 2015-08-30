@@ -1378,11 +1378,50 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 	desc = intf->cur_altsetting;
 	hdev = interface_to_usbdev(intf);
 
-	pm_runtime_set_autosuspend_delay(&hdev->dev, 0);
+	/*
+	 * Set default autosuspend delay as 0 to speedup bus suspend,
+	 * based on the below considerations:
+	 *
+	 * - Unlike other drivers, the hub driver does not rely on the
+	 *   autosuspend delay to provide enough time to handle a wakeup
+	 *   event, and the submitted status URB is just to check future
+	 *   change on hub downstream ports, so it is safe to do it.
+	 *
+	 * - The patch might cause one or more auto supend/resume for
+	 *   below very rare devices when they are plugged into hub
+	 *   first time:
+	 *
+	 *   	devices having trouble initializing, and disconnect
+	 *   	themselves from the bus and then reconnect a second
+	 *   	or so later
+	 *
+	 *   	devices just for downloading firmware, and disconnects
+	 *   	themselves after completing it
+	 *
+	 *   For these quite rare devices, their drivers may change the
+	 *   autosuspend delay of their parent hub in the probe() to one
+	 *   appropriate value to avoid the subtle problem if someone
+	 *   does care it.
+	 *
+	 * - The patch may cause one or more auto suspend/resume on
+	 *   hub during running 'lsusb', but it is probably too
+	 *   infrequent to worry about.
+	 *
+	 * - Change autosuspend delay of hub can avoid unnecessary auto
+	 *   suspend timer for hub, also may decrease power consumption
+	 *   of USB bus.
+	 *
+	 * - If user has indicated to prevent autosuspend by passing
+	 *   usbcore.autosuspend = -1 then keep autosuspend disabled.
+	 */
+#ifdef CONFIG_PM_RUNTIME
+	if (hdev->dev.power.autosuspend_delay >= 0)
+		pm_runtime_set_autosuspend_delay(&hdev->dev, 0);
+#endif
 
-	if (hdev->parent) {		
+	if (hdev->parent) {
 		usb_enable_autosuspend(hdev);
-	} else {			
+	} else {
 		const struct hc_driver *drv = bus_to_hcd(hdev->bus)->driver;
 
 		if (drv->bus_suspend && drv->bus_resume)
@@ -2614,6 +2653,77 @@ static int finish_port_resume(struct usb_device *udev)
 	return status;
 }
 
+/*
+ * There are some SS USB devices which take longer time for link training.
+ * XHCI specs 4.19.4 says that when Link training is successful, port
+ * sets CSC bit to 1. So if SW reads port status before successful link
+ * training, then it will not find device to be present.
+ * USB Analyzer log with such buggy devices show that in some cases
+ * device switch on the RX termination after long delay of host enabling
+ * the VBUS. In few other cases it has been seen that device fails to
+ * negotiate link training in first attempt. It has been
+ * reported till now that few devices take as long as 2000 ms to train
+ * the link after host enabling its VBUS and termination. Following
+ * routine implements a 2000 ms timeout for link training. If in a case
+ * link trains before timeout, loop will exit earlier.
+ *
+ * FIXME: If a device was connected before suspend, but was removed
+ * while system was asleep, then the loop in the following routine will
+ * only exit at timeout.
+ *
+ * This routine should only be called when persist is enabled for a SS
+ * device.
+ */
+static int wait_for_ss_port_enable(struct usb_device *udev,
+		struct usb_hub *hub, int *port1,
+		u16 *portchange, u16 *portstatus)
+{
+	int status = 0, delay_ms = 0;
+
+	while (delay_ms < 2000) {
+		if (status || *portstatus & USB_PORT_STAT_CONNECTION)
+			break;
+		msleep(20);
+		delay_ms += 20;
+		status = hub_port_status(hub, *port1, portstatus, portchange);
+	}
+	return status;
+}
+
+/*
+ * usb_port_resume - re-activate a suspended usb device's upstream port
+ * @udev: device to re-activate, not a root hub
+ * Context: must be able to sleep; device not locked; pm locks held
+ *
+ * This will re-activate the suspended device, increasing power usage
+ * while letting drivers communicate again with its endpoints.
+ * USB resume explicitly guarantees that the power session between
+ * the host and the device is the same as it was when the device
+ * suspended.
+ *
+ * If @udev->reset_resume is set then this routine won't check that the
+ * port is still enabled.  Furthermore, finish_port_resume() above will
+ * reset @udev.  The end result is that a broken power session can be
+ * recovered and @udev will appear to persist across a loss of VBUS power.
+ *
+ * For example, if a host controller doesn't maintain VBUS suspend current
+ * during a system sleep or is reset when the system wakes up, all the USB
+ * power sessions below it will be broken.  This is especially troublesome
+ * for mass-storage devices containing mounted filesystems, since the
+ * device will appear to have disconnected and all the memory mappings
+ * to it will be lost.  Using the USB_PERSIST facility, the device can be
+ * made to appear as if it had not disconnected.
+ *
+ * This facility can be dangerous.  Although usb_reset_and_verify_device() makes
+ * every effort to insure that the same device is present after the
+ * reset as before, it cannot provide a 100% guarantee.  Furthermore it's
+ * quite possible for a device to remain unaltered but its media to be
+ * changed.  If the user replaces a flash memory card while the system is
+ * asleep, he will have only himself to blame when the filesystem on the
+ * new card is corrupted and the system crashes.
+ *
+ * Returns 0 on success, else negative errno.
+ */
 int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 {
 	struct usb_hub	*hub = usb_hub_to_struct_hub(udev->parent);
@@ -2681,6 +2791,10 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	}
 
 	clear_bit(port1, hub->busy_bits);
+
+	if (udev->persist_enabled && hub_is_superspeed(hub->hdev))
+		status = wait_for_ss_port_enable(udev, hub, &port1, &portchange,
+				&portstatus);
 
 	status = check_port_resume_type(udev,
 			hub, port1, status, portchange, portstatus);
