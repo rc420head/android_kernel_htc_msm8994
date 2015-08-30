@@ -2204,30 +2204,30 @@ SYSCALL_DEFINE2(pivot_root, const char __user *, new_root,
 		goto out4;
 	error = -EBUSY;
 	if (new_mnt == root_mnt || old_mnt == root_mnt)
-                goto out4; /* loop, on the same file system  */
-        error = -EINVAL;
-        if (root.mnt->mnt_root != root.dentry)
-                goto out4; /* not a mountpoint */
-        if (!mnt_has_parent(root_mnt))
-                goto out4; /* not attached */
-        root_mp = root_mnt->mnt_mp;
-        if (new.mnt->mnt_root != new.dentry)
-                goto out4; /* not a mountpoint */
-        if (!mnt_has_parent(new_mnt))
-                goto out4; /* not attached */
-        /* make sure we can reach put_old from new_root */
-        if (!is_path_reachable(old_mnt, old.dentry, &new))
-                goto out4;
-        /* make certain new is below the root */
-        if (!is_path_reachable(new_mnt, new.dentry, &root))
-                goto out4;
-        root_mp->m_count++; /* pin it so it won't go away */
-        br_write_lock(&vfsmount_lock);
-        detach_mnt(new_mnt, &parent_path);
-        detach_mnt(root_mnt, &root_parent);
-        /* mount old root on put_old */
-        attach_mnt(root_mnt, old_mnt, old_mp);
-        /* mount new_root on / */
+		goto out4; /* loop, on the same file system  */
+	error = -EINVAL;
+	if (root.mnt->mnt_root != root.dentry)
+		goto out4; /* not a mountpoint */
+	if (!mnt_has_parent(root_mnt))
+		goto out4; /* not attached */
+	root_mp = root_mnt->mnt_mp;
+	if (new.mnt->mnt_root != new.dentry)
+		goto out4; /* not a mountpoint */
+	if (!mnt_has_parent(new_mnt))
+		goto out4; /* not attached */
+	/* make sure we can reach put_old from new_root */
+	if (!is_path_reachable(old_mnt, old.dentry, &new))
+		goto out4;
+	/* make certain new is below the root */
+	if (!is_path_reachable(new_mnt, new.dentry, &root))
+		goto out4;
+	root_mp->m_count++; /* pin it so it won't go away */
+	br_write_lock(&vfsmount_lock);
+	detach_mnt(new_mnt, &parent_path);
+	detach_mnt(root_mnt, &root_parent);
+	/* mount old root on put_old */
+	attach_mnt(root_mnt, old_mnt, old_mp);
+	/* mount new_root on / */
 	attach_mnt(new_mnt, real_mount(root_parent.mnt), root_mp);
 	touch_mnt_namespace(current->nsproxy->mnt_ns);
 	br_write_unlock(&vfsmount_lock);
