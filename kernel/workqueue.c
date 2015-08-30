@@ -1307,10 +1307,19 @@ restart:
 		goto restart;
 }
 
-static bool maybe_destroy_workers(struct worker_pool *pool)
+/**
+ * maybe_destroy_worker - destroy workers which have been idle for a while
+ * @pool: pool to destroy workers for
+ *
+ * Destroy @pool workers which have been idle for longer than
+ * IDLE_WORKER_TIMEOUT.
+ *
+ * LOCKING:
+ * spin_lock_irq(pool->lock) which may be released and regrabbed
+ * multiple times.  Called only from manager.
+ */
+static void maybe_destroy_workers(struct worker_pool *pool)
 {
-	bool ret = false;
-
 	while (too_many_workers(pool)) {
 		struct worker *worker;
 		unsigned long expires;
@@ -1324,10 +1333,7 @@ static bool maybe_destroy_workers(struct worker_pool *pool)
 		}
 
 		destroy_worker(worker);
-		ret = true;
 	}
-
-	return ret;
 }
 
 static bool manage_workers(struct worker *worker)
