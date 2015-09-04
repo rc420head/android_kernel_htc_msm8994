@@ -21,5 +21,6 @@
 #define MAX_SUSPEND_ABORT_LEN 256
 
 int check_wakeup_reason(int irq);
+void log_suspend_abort_reason(const char *fmt, ...);
 
 #endif /* _LINUX_WAKEUP_REASON_H */
