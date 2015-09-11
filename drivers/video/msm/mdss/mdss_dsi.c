@@ -24,6 +24,7 @@
 #include <linux/leds-qpnp-wled.h>
 #include <linux/clk.h>
 #include <linux/debug_display.h>
+#include <linux/lcd_notify.h>
 
 #include "mdss.h"
 #include "mdss_panel.h"
