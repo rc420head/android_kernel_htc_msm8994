@@ -2347,20 +2347,6 @@ static void rcu_kick_nohz_cpu(int cpu)
 #endif /* #ifdef CONFIG_NO_HZ_FULL */
 }
 
-/*
- * Bind the grace-period kthread for the sysidle flavor of RCU to the
- * timekeeping CPU.
- */
-static void rcu_bind_gp_kthread(void)
-{
-	int cpu = ACCESS_ONCE(tick_do_timer_cpu);
-
-	if (cpu < 0 || cpu >= nr_cpu_ids)
-		return;
-	if (raw_smp_processor_id() != cpu)
-		set_cpus_allowed_ptr(current, cpumask_of(cpu));
-}
-
 #ifdef CONFIG_NO_HZ_FULL_SYSIDLE
 
 /*
@@ -2541,20 +2527,6 @@ static void rcu_sysidle_check_cpu(struct rcu_data *rdp, bool *isidle,
 static bool is_sysidle_rcu_state(struct rcu_state *rsp)
 {
 	return rsp == rcu_sysidle_state;
-}
-
-/*
- * Bind the grace-period kthread for the sysidle flavor of RCU to the
- * timekeeping CPU.
- */
-static void rcu_bind_gp_kthread(void)
-{
-	int cpu = ACCESS_ONCE(tick_do_timer_cpu);
-
-	if (cpu < 0 || cpu >= nr_cpu_ids)
-		return;
-	if (raw_smp_processor_id() != cpu)
-		set_cpus_allowed_ptr(current, cpumask_of(cpu));
 }
 
 /*
@@ -2765,10 +2737,6 @@ static void rcu_sysidle_check_cpu(struct rcu_data *rdp, bool *isidle,
 static bool is_sysidle_rcu_state(struct rcu_state *rsp)
 {
 	return false;
-}
-
-static void rcu_bind_gp_kthread(void)
-{
 }
 
 static void rcu_sysidle_report_gp(struct rcu_state *rsp, int isidle,
