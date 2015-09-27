@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 10
-SUBLEVEL = 56
+SUBLEVEL = 55
 EXTRAVERSION =
 NAME = TOSSUG Baby Fish
 
@@ -241,8 +241,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer -pipe -DNDEBUG
-HOSTCXXFLAGS = -pipe -DNDEBUG -Ofast
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer
+HOSTCXXFLAGS = -Ofast
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -346,9 +346,8 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-
-KERNEL_FLAGS	= -pipe -DNDEBUG -Ofast -fbranch-target-load-optimize -marm -funsafe-math-optimizations -fivopts -fipa-pta -fira-hoist-pressure -fno-common -fmodulo-sched -fmodulo-sched-allow-regmoves -mvectorize-with-neon-quad -munaligned-access -fsingle-precision-constant -fpredictive-commoning -fgcse-after-reload -fgcse-las -Wno-array-bounds -Wno-error=strict-overflow -fuse-linker-plugin -std=gnu89
-MOD_FLAGS	= -DMODULE $(KERNEL_FLAGS)
+KERNEL_FLAGS	= -pipe -DNDEBUG -O3 -mtune=cortex-a53 -fbranch-target-load-optimize -mcpu=cortex-a53 -funsafe-math-optimizations -fivopts -fipa-pta -fira-hoist-pressure -fno-common -fmodulo-sched -fmodulo-sched-allow-regmoves -fsingle-precision-constant -fpredictive-commoning -fgcse-after-reload -fgcse-las -Wno-array-bounds -Wno-error=strict-overflow -Wno-maybe-uninitialized -fuse-linker-plugin -std=gnu89
+MOD_FLAGS	= -DMODULE -fno-pic $(KERNEL_FLAGS)
 CFLAGS_MODULE   = $(MOD_FLAGS)
 AFLAGS_MODULE   = $(MOD_FLAGS)
 LDFLAGS_MODULE  = --strip-debug
@@ -380,12 +379,12 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks $(KERNEL_FLAGS)
-KBUILD_AFLAGS_KERNEL := $(KERNEL_FLAGS)
-KBUILD_CFLAGS_KERNEL := $(KERNEL_FLAGS)
+		   -fno-delete-null-pointer-checks
+KBUILD_AFLAGS_KERNEL :=
+KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_AFLAGS_MODULE  := $(MOD_FLAGS)
-KBUILD_CFLAGS_MODULE  := $(MOD_FLAGS)
+KBUILD_AFLAGS_MODULE  := -DMODULE
+KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
@@ -580,7 +579,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -Ofast
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
@@ -636,8 +635,6 @@ ifndef CONFIG_FUNCTION_TRACER
 KBUILD_CFLAGS	+= -fomit-frame-pointer
 endif
 endif
-
-KBUILD_CFLAGS   += $(call cc-option, -fno-var-tracking-assignments)
 
 ifdef CONFIG_DEBUG_INFO
 KBUILD_CFLAGS	+= -g
