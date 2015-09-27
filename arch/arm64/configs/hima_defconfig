@@ -3846,6 +3846,8 @@ CONFIG_HTC_MODEM_NOTIFIER=y
 # Firmware Drivers
 #
 
+WQ_POWER_EFFICIENT_DEFAULT=y
+
 #
 # File systems
 #

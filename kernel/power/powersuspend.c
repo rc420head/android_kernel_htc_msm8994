@@ -232,7 +232,6 @@ static ssize_t power_suspend_mode_store(struct kobject *kobj,
 		default:
 			return -EINVAL;
 	}
-	
 }
 
 static struct kobj_attribute power_suspend_mode_attribute =
