@@ -1186,8 +1186,6 @@ static void sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	unsigned long timeout;
 	unsigned long flags;
 
-	present = mmc_gpio_get_cd(host->mmc);
-
 	spin_lock_irqsave(&host->lock, flags);
 	if (clock && clock == host->clock)
 		goto ret;
@@ -1239,7 +1237,6 @@ static void sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 			clk_mul = host->clk_mul;
 			div--;
 		} else {
-			
 			if (host->max_clk <= clock)
 				div = 1;
 			else {
@@ -1680,7 +1677,6 @@ static void sdhci_do_set_ios(struct sdhci_host *host, struct mmc_ios *ios)
 	}
 
 	spin_lock_irqsave(&host->lock, flags);
-	
 	sdhci_cfg_irq(host, false);
 	spin_unlock_irqrestore(&host->lock, flags);
 	if (ios->clock) {

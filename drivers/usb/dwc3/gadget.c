@@ -597,7 +597,7 @@ static int __dwc3_gadget_ep_disable(struct dwc3_ep *dep)
 
 	/* make sure HW endpoint isn't stalled */
 	if (dep->flags & DWC3_EP_STALL)
-		__dwc3_gadget_ep_set_halt(dep, 0);
+		__dwc3_gadget_ep_set_halt(dep, 0, false);
 
 	reg = dwc3_readl(dwc->regs, DWC3_DALEPENA);
 	reg &= ~DWC3_DALEPENA_EP(dep->number);
@@ -1359,7 +1359,7 @@ out0:
 	return ret;
 }
 
-int __dwc3_gadget_ep_set_halt(struct dwc3_ep *dep, int value)
+int __dwc3_gadget_ep_set_halt(struct dwc3_ep *dep, int value, int protocol)
 {
 	struct dwc3_gadget_ep_cmd_params	params;
 	struct dwc3				*dwc = dep->dwc;
@@ -1368,6 +1368,14 @@ int __dwc3_gadget_ep_set_halt(struct dwc3_ep *dep, int value)
 	memset(&params, 0x00, sizeof(params));
 
 	if (value) {
+		if (!protocol && ((dep->direction && dep->flags & DWC3_EP_BUSY) ||
+				(!list_empty(&dep->req_queued) ||
+				 !list_empty(&dep->request_list)))) {
+			dev_dbg(dwc->dev, "%s: pending request, cannot halt\n",
+					dep->name);
+			return -EAGAIN;
+		}
+
 		ret = dwc3_send_gadget_ep_cmd(dwc, dep->number,
 			DWC3_DEPCMD_SETSTALL, &params);
 		if (ret)
@@ -1408,7 +1416,7 @@ static int dwc3_gadget_ep_set_halt(struct usb_ep *ep, int value)
 	}
 
 	dbg_event(dep->number, "HALT", value);
-	ret = __dwc3_gadget_ep_set_halt(dep, value);
+	ret = __dwc3_gadget_ep_set_halt(dep, value, false);
 out:
 	spin_unlock_irqrestore(&dwc->lock, flags);
 
@@ -2213,6 +2221,21 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 			if (trb_status == DWC3_TRBSTS_MISSED_ISOC) {
 				dev_dbg(dwc->dev, "incomplete IN transfer %s\n",
 						dep->name);
+				/*
+				 * If missed isoc occurred and there is
+				 * no request queued then issue END
+				 * TRANSFER, so that core generates
+				 * next xfernotready and we will issue
+				 * a fresh START TRANSFER.
+				 * If there are still queued request
+				 * then wait, do not issue either END
+				 * or UPDATE TRANSFER, just attach next
+				 * request in request_list during
+				 * giveback.If any future queued request
+				 * is successfully transferred then we
+				 * will issue UPDATE TRANSFER for all
+				 * request in the request_list.
+				 */
 				dep->flags |= DWC3_EP_MISSED_ISOC;
 				dbg_event(dep->number, "MISSED ISOC", status);
 			} else {
@@ -2220,9 +2243,6 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 						dep->name);
 				status = -ECONNRESET;
 			}
-
-			if (last_one)
-				break;
 		} else {
 			dep->flags &= ~DWC3_EP_MISSED_ISOC;
 		}
@@ -2232,6 +2252,13 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 			s_pkt = 1;
 	}
 
+	/*
+	 * We assume here we will always receive the entire data block
+	 * which we should receive. Meaning, if we program RX to
+	 * receive 4K but we receive only 2K, we assume that's all we
+	 * should receive and we simply bounce the request back to the
+	 * gadget driver for further processing.
+	 */
 	req->request.actual += req->request.length - count;
 	if (s_pkt)
 		return 1;
@@ -2280,7 +2307,7 @@ static int dwc3_cleanup_done_reqs(struct dwc3 *dwc, struct dwc3_ep *dep,
 			ret = __dwc3_cleanup_done_trbs(dwc, dep, req, trb,
 					event, status);
 			if (ret)
-				break;
+				return 0;
 		}while (++i < req->request.num_mapped_sgs);
 
 		if (req->ztrb) {
