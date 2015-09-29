@@ -36,14 +36,14 @@
 #define INTELLI_PLUG_MAJOR_VERSION	4
 #define INTELLI_PLUG_MINOR_VERSION	0
 
-#define DEF_SAMPLING_MS			(250)
+#define DEF_SAMPLING_MS    (250)
 
-#define DUAL_PERSISTENCE		(2500 / DEF_SAMPLING_MS)
-#define TRI_PERSISTENCE			(1700 / DEF_SAMPLING_MS)
-#define QUAD_PERSISTENCE		(1300 / DEF_SAMPLING_MS)
-#define MAX_PERSISTENCE     (1000 / DEF_SAMPLING_MS)
+#define DUAL_PERSISTENCE   (2500 / DEF_SAMPLING_MS)
+#define TRI_PERSISTENCE    (1700 / DEF_SAMPLING_MS)
+#define QUAD_PERSISTENCE   (1300 / DEF_SAMPLING_MS)
+#define MAX_PERSISTENCE    (1000 / DEF_SAMPLING_MS)
 
-#define BUSY_PERSISTENCE		(3500 / DEF_SAMPLING_MS)
+#define BUSY_PERSISTENCE   (3500 / DEF_SAMPLING_MS)
 
 static DEFINE_MUTEX(intelli_plug_mutex);
 
@@ -108,13 +108,13 @@ defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 static unsigned int nr_fshift = NR_FSHIFT;
 
 static unsigned int nr_run_thresholds_balance[] = {
-	(THREAD_CAPACITY * 400 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 900 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1400 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1900 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 2400 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 2900 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 3400 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 500 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1000 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1500 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2000 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2500 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3000 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3500 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
@@ -152,11 +152,6 @@ static unsigned int nr_run_thresholds_eco[] = {
 	UINT_MAX
 };
 
-static unsigned int nr_run_thresholds_eco_extreme[] = {
-  (THREAD_CAPACITY * 750 * MULT_FACTOR) / DIV_FACTOR,
-	UINT_MAX
-};
-
 static unsigned int nr_run_thresholds_disable[] = {
 	0,  0,  0,  UINT_MAX
 };
@@ -167,14 +162,13 @@ static unsigned int *nr_run_profiles[] = {
 	nr_run_thresholds_conservative,
 	nr_run_thresholds_quad,
 	nr_run_thresholds_eco,
-	nr_run_thresholds_eco_extreme,
 	nr_run_thresholds_disable,
 };
 
 #define NR_RUN_ECO_MODE_PROFILE	  4
 #define NR_RUN_QUAD_MODE_PROFILE  3
 
-#define NR_RUN_HYSTERESIS_MAX	  12 
+#define NR_RUN_HYSTERESIS_MAX	  12
 #define NR_RUN_HYSTERESIS_QUAD	  8
 #define NR_RUN_HYSTERESIS_DUAL	  4
 
@@ -202,7 +196,7 @@ static unsigned int calculate_thread_stats(void)
 	unsigned int *current_profile;
 
 	current_profile = nr_run_profiles[nr_run_profile_sel];
-	
+
 	if (num_possible_cpus() > 2) {
 		if (nr_run_profile_sel >= NR_RUN_ECO_MODE_PROFILE)
 			threshold_size =
