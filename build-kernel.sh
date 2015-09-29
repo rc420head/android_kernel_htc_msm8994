@@ -18,7 +18,7 @@ RESOURCE_DIR="$KERNEL_DIR/.."
 
 # Kernel Details
 BASE_AK_VER="Smoocha-M9-"
-VER="R3"
+VER="R5"
 AK_VER="$BASE_AK_VER$VER"
 
 # Vars
