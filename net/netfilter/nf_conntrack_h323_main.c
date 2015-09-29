@@ -584,9 +584,9 @@ static int h245_help(struct sk_buff *skb, unsigned int protoff,
 {
 	static MultimediaSystemControlMessage mscm;
 	unsigned char *data = NULL;
-	int datalen;
-	int dataoff;
-	int ret;
+	int datalen = 0;
+	int dataoff = 0;
+	int ret = 0;
 
 	/* Until there's been traffic both ways, don't look in packets. */
 	if (ctinfo != IP_CT_ESTABLISHED && ctinfo != IP_CT_ESTABLISHED_REPLY)
@@ -1159,9 +1159,9 @@ static int q931_help(struct sk_buff *skb, unsigned int protoff,
 {
 	static Q931 q931;
 	unsigned char *data = NULL;
-	int datalen;
-	int dataoff;
-	int ret;
+	int datalen = 0;
+	int dataoff = 0;
+	int ret = 0;
 
 	/* Until there's been traffic both ways, don't look in packets. */
 	if (ctinfo != IP_CT_ESTABLISHED && ctinfo != IP_CT_ESTABLISHED_REPLY)
@@ -1237,7 +1237,7 @@ static unsigned char *get_udp_data(struct sk_buff *skb, unsigned int protoff,
 {
 	const struct udphdr *uh;
 	struct udphdr _uh;
-	int dataoff;
+	int dataoff = 0;
 
 	uh = skb_header_pointer(skb, protoff, sizeof(_uh), &_uh);
 	if (uh == NULL)
@@ -1292,7 +1292,7 @@ static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
 	struct nf_ct_h323_master *info = nfct_help_data(ct);
 	int dir = CTINFO2DIR(ctinfo);
 	int ret = 0;
-	int i;
+	int i = 0;
 	__be16 port;
 	union nf_inet_addr addr;
 	struct nf_conntrack_expect *exp;
@@ -1411,7 +1411,7 @@ static int process_rrq(struct sk_buff *skb, struct nf_conn *ct,
 		       unsigned char **data, RegistrationRequest *rrq)
 {
 	struct nf_ct_h323_master *info = nfct_help_data(ct);
-	int ret;
+	int ret = 0;
 	typeof(set_ras_addr_hook) set_ras_addr;
 
 	pr_debug("nf_ct_ras: RRQ\n");
@@ -1449,7 +1449,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
 {
 	struct nf_ct_h323_master *info = nfct_help_data(ct);
 	int dir = CTINFO2DIR(ctinfo);
-	int ret;
+	int ret = 0;
 	struct nf_conntrack_expect *exp;
 	typeof(set_sig_addr_hook) set_sig_addr;
 
@@ -1500,7 +1500,7 @@ static int process_urq(struct sk_buff *skb, struct nf_conn *ct,
 {
 	struct nf_ct_h323_master *info = nfct_help_data(ct);
 	int dir = CTINFO2DIR(ctinfo);
-	int ret;
+	int ret = 0;
 	typeof(set_sig_addr_hook) set_sig_addr;
 
 	pr_debug("nf_ct_ras: URQ\n");
@@ -1684,7 +1684,7 @@ static int process_irr(struct sk_buff *skb, struct nf_conn *ct,
 		       unsigned int protoff,
 		       unsigned char **data, InfoRequestResponse *irr)
 {
-	int ret;
+	int ret = 0;
 	typeof(set_ras_addr_hook) set_ras_addr;
 	typeof(set_sig_addr_hook) set_sig_addr;
 
@@ -1764,7 +1764,7 @@ static int ras_help(struct sk_buff *skb, unsigned int protoff,
 	static RasMessage ras;
 	unsigned char *data;
 	int datalen = 0;
-	int ret;
+	int ret = 0;
 
 	pr_debug("nf_ct_ras: skblen = %u\n", skb->len);
 
@@ -1844,7 +1844,7 @@ static void __exit nf_conntrack_h323_fini(void)
 /****************************************************************************/
 static int __init nf_conntrack_h323_init(void)
 {
-	int ret;
+	int ret = 0;
 
 	h323_buffer = kmalloc(65536, GFP_KERNEL);
 	if (!h323_buffer)

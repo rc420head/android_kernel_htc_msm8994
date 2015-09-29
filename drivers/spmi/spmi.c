@@ -783,14 +783,12 @@ void htc_get_pmic_version(struct spmi_controller *ctrl)
 }
 void htc_get_pon_boot_reason(struct spmi_controller *ctrl)
 {
-	
 	if (pm8994_reason_1 == 0xFF)
 		htc_spmi_read_data(ctrl, &pm8994_reason_1, PM8994_PON_PON_REASON1, 1);
 
 	if (pmi8994_reason_1 == 0xFF)
 		htc_spmi_read_data(ctrl, &pmi8994_reason_1, PMI8994_PON_PON_REASON1, 1);
 
-	
 	if (pm8994_warm_reset_reason_1 == 0xFF)
 		htc_spmi_read_data(ctrl, &pm8994_warm_reset_reason_1, PM8994_PON_WARM_RESET_REASON1, 1);
 
@@ -803,8 +801,6 @@ void htc_get_pon_boot_reason(struct spmi_controller *ctrl)
 	if (pmi8994_warm_reset_reason_2 == 0xFF)
 		htc_spmi_read_data(ctrl, &pmi8994_warm_reset_reason_2, PMI8994_PON_WARM_RESET_REASON2, 1);
 
-
-	
 	if (pm8994_soft_reset_reason_1 == 0xFF)
 		htc_spmi_read_data(ctrl, &pm8994_soft_reset_reason_1, PM8994_PON_SOFT_RESET_REASON1, 1);
 
@@ -819,7 +815,6 @@ void htc_get_pon_boot_reason(struct spmi_controller *ctrl)
 		htc_spmi_read_data(ctrl, &pmi8994_soft_reset_reason_2, PMI8994_PON_SOFT_RESET_REASON2, 1);
 
 
-	
 	if (pm8994_poff_reason_1 == 0xFF)
 		htc_spmi_read_data(ctrl, &pm8994_poff_reason_1, PM8994_PON_POFF_REASON1, 1);
 
@@ -841,13 +836,11 @@ int htc_print_pmic_version(void)
 
 void htc_print_pon_boot_reason(void)
 {
-	
 	printk(KERN_INFO "PM8994 PON_PON_REASON:\n");
 	htc_print_reset_reason(PM8994_PON_PON_REASON1, pm8994_reason_1);
 	printk(KERN_INFO "PMI8994 PON_PON_REASON:\n");
 	htc_print_reset_reason(PMI8994_PON_PON_REASON1, pmi8994_reason_1);
 
-	
 	printk(KERN_INFO "PM8994 PON_WARM_RESET_REASON:\n");
 	htc_print_reset_reason(PM8994_PON_WARM_RESET_REASON1, pm8994_warm_reset_reason_1);
 	htc_print_reset_reason(PM8994_PON_WARM_RESET_REASON2, pm8994_warm_reset_reason_2);
@@ -855,7 +848,6 @@ void htc_print_pon_boot_reason(void)
 	htc_print_reset_reason(PMI8994_PON_WARM_RESET_REASON1, pmi8994_warm_reset_reason_1);
 	htc_print_reset_reason(PMI8994_PON_WARM_RESET_REASON2, pmi8994_warm_reset_reason_2);
 
-	
 	printk(KERN_INFO "PM8994 PON_SOFT_RESET_REASON:\n");
 	htc_print_reset_reason(PM8994_PON_SOFT_RESET_REASON1, pm8994_soft_reset_reason_1);
 	htc_print_reset_reason(PM8994_PON_SOFT_RESET_REASON2, pm8994_soft_reset_reason_2);
@@ -863,7 +855,6 @@ void htc_print_pon_boot_reason(void)
 	htc_print_reset_reason(PMI8994_PON_SOFT_RESET_REASON1, pmi8994_soft_reset_reason_1);
 	htc_print_reset_reason(PMI8994_PON_SOFT_RESET_REASON2, pmi8994_soft_reset_reason_2);
 
-	
 	printk(KERN_INFO "PM8994 PON_POFF_REASON:\n");
 	htc_print_reset_reason(PM8994_PON_POFF_REASON1, pm8994_poff_reason_1);
 	htc_print_reset_reason(PM8994_PON_POFF_REASON2, pm8994_poff_reason_2);

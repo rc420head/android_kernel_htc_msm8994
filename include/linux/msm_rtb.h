@@ -25,11 +25,10 @@ enum logk_event_type {
 	LOGK_L2CPWRITE = 8,
 	LOGK_IRQ = 9,
 #if defined(CONFIG_HTC_DEBUG_RTB)
-	
 	LOGK_DIE = 20,
 	LOGK_INITCALL = 21,
+#endif
 	LOGK_SOFTIRQ = 22,
-#endif 
 };
 
 #define LOGTYPE_NOPC 0x80
