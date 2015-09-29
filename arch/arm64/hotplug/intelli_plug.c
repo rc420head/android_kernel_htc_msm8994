@@ -36,11 +36,12 @@
 #define INTELLI_PLUG_MAJOR_VERSION	3
 #define INTELLI_PLUG_MINOR_VERSION	8
 
-#define DEF_SAMPLING_MS			(268)
+#define DEF_SAMPLING_MS			(250)
 
 #define DUAL_PERSISTENCE		(2500 / DEF_SAMPLING_MS)
 #define TRI_PERSISTENCE			(1700 / DEF_SAMPLING_MS)
-#define QUAD_PERSISTENCE		(1000 / DEF_SAMPLING_MS)
+#define QUAD_PERSISTENCE		(1300 / DEF_SAMPLING_MS)
+#define MAX_PERSISTENCE     (1000 / DEF_SAMPLING_MS)
 
 #define BUSY_PERSISTENCE		(3500 / DEF_SAMPLING_MS)
 
@@ -58,7 +59,7 @@ module_param(intelli_plug_active, uint, 0644);
 static unsigned int touch_boost_active = 1;
 module_param(touch_boost_active, uint, 0644);
 
-static unsigned int nr_run_profile_sel = 3;
+static unsigned int nr_run_profile_sel = 0;
 module_param(nr_run_profile_sel, uint, 0644);
 
 //default to something sane rather than zero
@@ -81,7 +82,9 @@ module_param(screen_off_max, uint, 0644);
 
 #define CAPACITY_RESERVE	50
 
-#if defined(CONFIG_ARCH_MSM8960) || defined(CONFIG_ARCH_APQ8064) || \
+#if defined(CONFIG_ARCH_MSM8994)
+#define THREAD_CAPACITY	(400 - CAPACITY_RESERVE)
+#elif defined(CONFIG_ARCH_MSM8960) || defined(CONFIG_ARCH_APQ8064) || \
 defined(CONFIG_ARCH_MSM8974)
 #define THREAD_CAPACITY	(339 - CAPACITY_RESERVE)
 #elif defined(CONFIG_ARCH_MSM8226) || defined (CONFIG_ARCH_MSM8926) || \
@@ -91,40 +94,65 @@ defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 #define THREAD_CAPACITY	(250 - CAPACITY_RESERVE)
 #endif
 
+#if defined(CONFIG_ARCH_MSM8994)
+#define MULT_FACTOR	6
+#else
 #define MULT_FACTOR	4
-#define DIV_FACTOR	100000
+#endif
+
 #define NR_FSHIFT	3
+#define DIV_FACTOR	100000
+
 
 static unsigned int nr_fshift = NR_FSHIFT;
 
 static unsigned int nr_run_thresholds_balance[] = {
-	(THREAD_CAPACITY * 625 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 875 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1125 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 400 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 900 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1400 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1900 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2400 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2900 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3400 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
 static unsigned int nr_run_thresholds_performance[] = {
 	(THREAD_CAPACITY * 380 * MULT_FACTOR) / DIV_FACTOR,
 	(THREAD_CAPACITY * 625 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 875 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 870 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1115 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1360 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1605 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1850 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
 static unsigned int nr_run_thresholds_conservative[] = {
 	(THREAD_CAPACITY * 875 * MULT_FACTOR) / DIV_FACTOR,
 	(THREAD_CAPACITY * 1625 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 2125 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2375 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3125 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3875 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 4625 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 5375 * MULT_FACTOR) / DIV_FACTOR,
+	UINT_MAX
+};
+
+static unsigned int nr_run_thresholds_quad[] = {
+	(THREAD_CAPACITY * 625 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 875 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1125 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
 static unsigned int nr_run_thresholds_eco[] = {
-        (THREAD_CAPACITY * 380 * MULT_FACTOR) / DIV_FACTOR,
+  (THREAD_CAPACITY * 380 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
 static unsigned int nr_run_thresholds_eco_extreme[] = {
-        (THREAD_CAPACITY * 750 * MULT_FACTOR) / DIV_FACTOR,
+  (THREAD_CAPACITY * 750 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
@@ -136,24 +164,28 @@ static unsigned int *nr_run_profiles[] = {
 	nr_run_thresholds_balance,
 	nr_run_thresholds_performance,
 	nr_run_thresholds_conservative,
+	nr_run_thresholds_quad,
 	nr_run_thresholds_eco,
 	nr_run_thresholds_eco_extreme,
 	nr_run_thresholds_disable,
 };
 
-#define NR_RUN_ECO_MODE_PROFILE	3
-#define NR_RUN_HYSTERESIS_QUAD	8
-#define NR_RUN_HYSTERESIS_DUAL	4
+#define NR_RUN_ECO_MODE_PROFILE	  4
+#define NR_RUN_QUAD_MODE_PROFILE	3
+
+#define NR_RUN_HYSTERESIS_MAX	    16
+#define NR_RUN_HYSTERESIS_QUAD	  8
+#define NR_RUN_HYSTERESIS_DUAL	  4
 
 #define CPU_NR_THRESHOLD	((THREAD_CAPACITY << 1) + (THREAD_CAPACITY / 2))
 
 static unsigned int nr_possible_cores;
-module_param(nr_possible_cores, uint, 0444);
+module_param(nr_possible_cores, uint, 0644);
 
 static unsigned int cpu_nr_run_threshold = CPU_NR_THRESHOLD;
 module_param(cpu_nr_run_threshold, uint, 0644);
 
-static unsigned int nr_run_hysteresis = NR_RUN_HYSTERESIS_QUAD;
+static unsigned int nr_run_hysteresis = NR_RUN_HYSTERESIS_MAX;
 module_param(nr_run_hysteresis, uint, 0644);
 
 static unsigned int nr_run_last;
@@ -169,10 +201,14 @@ static unsigned int calculate_thread_stats(void)
 	unsigned int *current_profile;
 
 	current_profile = nr_run_profiles[nr_run_profile_sel];
+	
 	if (num_possible_cpus() > 2) {
 		if (nr_run_profile_sel >= NR_RUN_ECO_MODE_PROFILE)
 			threshold_size =
 				ARRAY_SIZE(nr_run_thresholds_eco);
+		else if(nr_run_profile_sel == NR_RUN_QUAD_MODE_PROFILE)
+			threshold_size =
+				ARRAY_SIZE(nr_run_thresholds_quad);
 		else
 			threshold_size =
 				ARRAY_SIZE(nr_run_thresholds_balance);
@@ -182,8 +218,8 @@ static unsigned int calculate_thread_stats(void)
 
 	if (nr_run_profile_sel >= NR_RUN_ECO_MODE_PROFILE)
 		nr_fshift = 1;
-	else
-		nr_fshift = num_possible_cpus() - 1;
+  else
+		nr_fshift = NR_FSHIFT;
 
 	for (nr_run = 1; nr_run < threshold_size; nr_run++) {
 		unsigned int nr_threshold;
@@ -201,7 +237,6 @@ static unsigned int calculate_thread_stats(void)
 
 static void __cpuinit intelli_plug_boost_fn(struct work_struct *work)
 {
-
 	int nr_cpus = num_online_cpus();
 
 	if (intelli_plug_active)
@@ -318,6 +353,19 @@ static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 				pr_info("case 4: %u\n", persist_count);
 #endif
 				break;
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+        if (persist_count == 0)
+          persist_count = MAX_PERSISTENCE;
+          if (nr_cpus <= 8)
+            for (i = 1; i < cpu_count; i++)
+              cpu_up(i);
+#ifdef DEBUG_INTELLI_PLUG
+            pr_info("case 4: %u\n", persist_count);
+#endif
+        break;
 			default:
 				pr_err("Run Stat Error: Bad value %u\n", nr_run_stat);
 				break;
@@ -329,7 +377,7 @@ static void __cpuinit intelli_plug_work_fn(struct work_struct *work)
 #endif
 	}
 	queue_delayed_work_on(0, intelliplug_wq, &intelli_plug_work,
-		msecs_to_jiffies(sampling_time));
+	msecs_to_jiffies(sampling_time));
 }
 
 #if defined(CONFIG_POWERSUSPEND) || defined(CONFIG_HAS_EARLYSUSPEND)
@@ -372,6 +420,8 @@ static void screen_off_limit(bool on)
 	}
 }
 
+#endif
+
 #ifdef CONFIG_POWERSUSPEND
 static void intelli_plug_suspend(struct power_suspend *handler)
 #else
@@ -380,7 +430,6 @@ static void intelli_plug_suspend(struct early_suspend *handler)
 {
 	if (intelli_plug_active) {
 		int cpu;
-	
 		flush_workqueue(intelliplug_wq);
 
 		mutex_lock(&intelli_plug_mutex);
@@ -438,7 +487,6 @@ static void __cpuinit intelli_plug_resume(struct early_suspend *handler)
 	queue_delayed_work_on(0, intelliplug_wq, &intelli_plug_work,
 		msecs_to_jiffies(10));
 }
-#endif
 
 #ifdef CONFIG_POWERSUSPEND
 static struct power_suspend intelli_plug_power_suspend_driver = {
@@ -543,9 +591,12 @@ int __init intelli_plug_init(void)
 		 INTELLI_PLUG_MAJOR_VERSION,
 		 INTELLI_PLUG_MINOR_VERSION);
 
-	if (nr_possible_cores > 2) {
-		nr_run_hysteresis = NR_RUN_HYSTERESIS_QUAD;
+	if (nr_possible_cores > 4) {
+		nr_run_hysteresis = NR_RUN_HYSTERESIS_MAX;
 		nr_run_profile_sel = 0;
+	} else if (nr_possible_cores > 2) {
+		nr_run_hysteresis = NR_RUN_HYSTERESIS_QUAD;
+		nr_run_profile_sel = 3;
 	} else {
 		nr_run_hysteresis = NR_RUN_HYSTERESIS_DUAL;
 		nr_run_profile_sel = NR_RUN_ECO_MODE_PROFILE;
