@@ -904,8 +904,9 @@ static void handle_reset_ep_completion(struct xhci_hcd *xhci,
 				false);
 		xhci_ring_cmd_db(xhci);
 	} else {
-		/* Clear our internal halted state */
+		
 		xhci->devs[slot_id]->eps[ep_index].ep_state &= ~EP_HALTED;
+		ring_doorbell_for_active_rings(xhci, slot_id, ep_index);
 	}
 }
 
@@ -2021,19 +2022,11 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		if (ep->skip)
 			td_num--;
 
+		
 		event_seg = trb_in_td(ep_ring->deq_seg, ep_ring->dequeue,
 				td->last_trb, event_dma);
 
-		/*
-		 * Skip the Force Stopped Event. The event_trb(event_dma) of FSE
-		 * is not in the current TD pointed by ep_ring->dequeue because
-		 * that the hardware dequeue pointer still at the previous TRB
-		 * of the current TD. The previous TRB maybe a Link TD or the
-		 * last TRB of the previous TD. The command completion handle
-		 * will take care the rest.
-		 */
-		if (!event_seg && (trb_comp_code == COMP_STOP ||
-				   trb_comp_code == COMP_STOP_INVAL)) {
+		if (!event_seg && trb_comp_code == COMP_STOP_INVAL) {
 			ret = 0;
 			goto cleanup;
 		}
