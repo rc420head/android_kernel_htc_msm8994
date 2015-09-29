@@ -216,6 +216,7 @@
 		mdss_fb0: qcom,mdss_fb_primary {
 			cell-index = <0>;
 			compatible = "qcom,mdss-fb";
+			qcom,mdss-fb-splash-logo-enabled;
 			htc,fbmem-heap-remapping;
 		};
 
