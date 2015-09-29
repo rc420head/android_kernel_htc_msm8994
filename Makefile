@@ -241,8 +241,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer
-HOSTCXXFLAGS = -Ofast
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
+HOSTCXXFLAGS = -O2
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -346,7 +346,7 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-KERNEL_FLAGS	= -pipe -DNDEBUG -Ofast -mtune=cortex-a53 -fbranch-target-load-optimize -mcpu=cortex-a53 -funsafe-math-optimizations -fivopts -fipa-pta -fira-hoist-pressure -fno-common -fmodulo-sched -fmodulo-sched-allow-regmoves -fsingle-precision-constant -fpredictive-commoning -fgcse-after-reload -fgcse-las -Wno-array-bounds -Wno-error=strict-overflow -Wno-maybe-uninitialized -fuse-linker-plugin -std=gnu89
+KERNEL_FLAGS	= -pipe -DNDEBUG -O2 -mtune=cortex-a53 -fbranch-target-load-optimize -mcpu=cortex-a53 -funsafe-math-optimizations -fivopts -fipa-pta -fira-hoist-pressure -fno-common -fmodulo-sched -fmodulo-sched-allow-regmoves -fsingle-precision-constant -fgcse-after-reload -fgcse-las -Wno-array-bounds -Wno-error=strict-overflow -Wno-maybe-uninitialized -fuse-linker-plugin -std=gnu89 -Wno-discarded-array-qualifiers
 MOD_FLAGS	= -DMODULE -fno-pic $(KERNEL_FLAGS)
 CFLAGS_MODULE   = $(MOD_FLAGS)
 AFLAGS_MODULE   = $(MOD_FLAGS)
@@ -579,7 +579,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -Ofast
+KBUILD_CFLAGS	+= -O2
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
