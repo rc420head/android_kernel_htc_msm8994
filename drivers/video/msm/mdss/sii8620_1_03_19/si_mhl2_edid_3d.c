@@ -3565,11 +3565,9 @@ static uint8_t parse_861_short_descriptors(
 		return EDID_REV_ADDR_ERROR;
 	}
 
-	
 	puc_long_descriptors = ((uint8_t *) p_CEA_extension) +
 	    p_CEA_extension->byte_offset_to_18_byte_descriptors;
 
-	
 	mhl_edid_3d_data->parse_data.underscan =
 	    p_CEA_extension_version_3->misc_support.
 	    underscan_IT_formats_by_default ? 1 : 0;
@@ -3602,7 +3600,6 @@ static uint8_t parse_861_short_descriptors(
 			return EDID_V_DESCR_OVERFLOW;
 		}
 
-		
 		i = 0;
 		switch (tag_code) {
 		case DBTC_VIDEO_DATA_BLOCK:
@@ -3617,7 +3614,6 @@ static uint8_t parse_861_short_descriptors(
 				    (struct video_data_block_t *)
 				    p_data_u.puc_data_block;
 
-				
 				while (i < data_block_length) {
 					uint8_t VIC;
 					VIC =
@@ -3723,6 +3719,8 @@ static uint8_t parse_861_short_descriptors(
 				MHL_TX_EDID_INFO(
 				    "EDID -> Short Desc Colorimetry Block\n");
 				break;
+			default:
+				break;
 			}
 
 			break;
@@ -3747,14 +3745,12 @@ static uint8_t parse_861_short_descriptors(
 					   ("unexpected data_block_length\n"));
 				mhl_edid_3d_data->parse_data.HDMI_sink = true;
 
-				
 				*((struct HDMI_LLC_BA_t *)
 					&mhl_edid_3d_data->parse_data.CEC_A_B) =
 							p_HDMI_vs_payload->B_A;
 				*((struct HDMI_LLC_DC_t *)
 				  &mhl_edid_3d_data->parse_data.CEC_C_D) =
 						  p_HDMI_vs_payload->D_C;
-				
 				if (p_HDMI_vs_payload->byte8.
 						latency_fields_present) {
 					if (p_HDMI_vs_payload->byte8.
