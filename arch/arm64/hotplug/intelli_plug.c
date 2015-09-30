@@ -56,7 +56,7 @@ static struct workqueue_struct *intelliplug_boost_wq;
 static unsigned int intelli_plug_active = 1;
 module_param(intelli_plug_active, uint, 0664);
 
-static unsigned int touch_boost_active = 1;
+static unsigned int touch_boost_active = 0;
 module_param(touch_boost_active, uint, 0664);
 
 static unsigned int nr_run_profile_sel = 0;
@@ -109,12 +109,12 @@ static unsigned int nr_fshift = NR_FSHIFT;
 
 static unsigned int nr_run_thresholds_balance[] = {
 	(THREAD_CAPACITY * 400 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 820 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1000 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 1020 * MULT_FACTOR) / DIV_FACTOR,
 	(THREAD_CAPACITY * 1400 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1650 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 1920 * MULT_FACTOR) / DIV_FACTOR,
-	(THREAD_CAPACITY * 2350 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2000 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2450 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 2820 * MULT_FACTOR) / DIV_FACTOR,
+	(THREAD_CAPACITY * 3350 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
