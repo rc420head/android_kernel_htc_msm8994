@@ -251,6 +251,7 @@ out:
 	return;
 }
 
+#ifdef CONFIG_STATE_NOTIFIER
 static void bricked_hotplug_suspend(void)
 {
 	int cpu;
@@ -320,7 +321,6 @@ static void __ref bricked_hotplug_resume(void)
 	}
 }
 
-#ifdef CONFIG_STATE_NOTIFIER
 static int state_notifier_callback(struct notifier_block *this,
 				unsigned long event, void *data)
 {
@@ -377,8 +377,10 @@ static int bricked_hotplug_start(void)
 					msecs_to_jiffies(hotplug.startdelay));
 
 	return ret;
+#ifdef CONFIG_STATE_NOTIFIER
 err_dev:
 	destroy_workqueue(hotplug_wq);
+#endif
 err_out:
 	hotplug.bricked_enabled = 0;
 	return ret;
