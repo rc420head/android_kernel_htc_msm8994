@@ -27,19 +27,19 @@
 #include <linux/state_notifier.h>
 #endif
 
-#define DEBUG 0
+//#define DEBUG 0
 
 #define MPDEC_TAG			"bricked_hotplug"
-#define HOTPLUG_ENABLED			0
-#define MSM_MPDEC_STARTDELAY		20000
-#define MSM_MPDEC_DELAY			130
+#define HOTPLUG_ENABLED			1
+#define MSM_MPDEC_STARTDELAY		HZ * 100
+#define MSM_MPDEC_DELAY			HZ / 2
 #define DEFAULT_MIN_CPUS_ONLINE		1
 #define DEFAULT_MAX_CPUS_ONLINE		NR_CPUS
 #define DEFAULT_MAX_CPUS_ONLINE_SUSP	1
 #define DEFAULT_SUSPEND_DEFER_TIME	10
 #define DEFAULT_DOWN_LOCK_DUR		500
 
-#define MSM_MPDEC_IDLE_FREQ		400000
+#define MSM_MPDEC_IDLE_FREQ		480000
 
 enum {
 	MSM_MPDEC_DISABLED = 0,
@@ -196,7 +196,7 @@ static int mp_decision(void) {
 	}
 
 	last_time = ktime_to_ms(ktime_get());
-#if DEBUG
+#ifdef DEBUG
 	pr_info(MPDEC_TAG"[DEBUG] rq: %u, new_state: %i | Mask=[%d%d%d%d]\n",
 			rq_depth, new_state, cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3));
 #endif
