@@ -320,7 +320,7 @@ void kgsl_pwrctrl_pwrlevel_change(struct kgsl_device *device,
 	
 	kgsl_pwrctrl_pwrlevel_change_settings(device, 1, 0);
 
-	
+
 	device->pwrscale.freq_change_time = ktime_to_ms(ktime_get());
 }
 EXPORT_SYMBOL(kgsl_pwrctrl_pwrlevel_change);
