@@ -110,8 +110,6 @@ static long media_device_enum_entities(struct media_device *mdev,
 	if (ent->name) {
 		strncpy(u_ent.name, ent->name, sizeof(u_ent.name));
 		u_ent.name[sizeof(u_ent.name) - 1] = '\0';
-	} else {
-		memset(u_ent.name, 0, sizeof(u_ent.name));
 	}
 	u_ent.type = ent->type;
 	u_ent.revision = ent->revision;
@@ -162,7 +160,7 @@ static long __media_device_enum_links(struct media_device *mdev,
 		for (l = 0, ulink = links->links; l < entity->num_links; l++) {
 			struct media_link_desc link;
 
-			
+			/* Ignore backlinks. */
 			if (entity->links[l].source->entity != entity)
 				continue;
 
@@ -227,7 +225,7 @@ static long media_device_setup_link(struct media_device *mdev,
 	if (link == NULL)
 		return -EINVAL;
 
-	
+	/* Setup the link on both entities. */
 	ret = __media_entity_setup_link(link, ulink.flags);
 
 	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
@@ -279,8 +277,8 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
 
 struct media_links_enum32 {
 	__u32 entity;
-	compat_uptr_t pads; 
-	compat_uptr_t links; 
+	compat_uptr_t pads; /* struct media_pad_desc * */
+	compat_uptr_t links; /* struct media_link_desc * */
 	__u32 reserved[4];
 };
 
@@ -331,7 +329,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
 
 	return ret;
 }
-#endif 
+#endif /* CONFIG_COMPAT */
 
 static const struct media_file_operations media_device_fops = {
 	.owner = THIS_MODULE,
@@ -371,7 +369,7 @@ int __must_check media_device_register(struct media_device *mdev)
 	spin_lock_init(&mdev->lock);
 	mutex_init(&mdev->graph_mutex);
 
-	
+	/* Register the device node. */
 	mdev->devnode.fops = &media_device_fops;
 	mdev->devnode.parent = mdev->dev;
 	mdev->devnode.release = media_device_release;

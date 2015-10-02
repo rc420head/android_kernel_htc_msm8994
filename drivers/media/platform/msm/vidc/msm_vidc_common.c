@@ -527,7 +527,7 @@ static int wait_for_sess_signal_receipt(struct msm_vidc_inst *inst,
 		&inst->completions[SESSION_MSG_INDEX(cmd)],
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
-		dprintk(VIDC_ERR, "Wait interrupted or timedout: %d\n", rc);
+		dprintk(VIDC_ERR, "Wait interrupted or timedout: %d, cmd: %d\n", rc, cmd);
 		msm_comm_kill_session(inst);
 		rc = -EIO;
 	} else {
@@ -688,7 +688,7 @@ static void handle_event_change(enum command_response cmd, void *data)
 				return;
 			}
 
-			
+			/* Fill event data to be sent to client*/
 			buf_event.type = V4L2_EVENT_RELEASE_BUFFER_REFERENCE;
 			ptr = (u32 *)buf_event.u.data;
 			ptr[0] = binfo->fd[0];
@@ -1508,7 +1508,7 @@ static void handle_fbd(enum command_response cmd, void *data)
 			break;
 		case HAL_FRAME_NOTCODED:
 		case HAL_UNUSED_PICT:
-			
+			/* Do we need to care about these? */
 		case HAL_FRAME_YUV:
 			break;
 		default:
@@ -1625,8 +1625,6 @@ void handle_cmd_response(enum command_response cmd, void *data)
 		handle_seq_hdr_done(cmd, data);
 		break;
 	case SYS_WATCHDOG_TIMEOUT:
-		handle_sys_error(cmd, data);
-		break;
 	case SYS_ERROR:
 		handle_sys_error(cmd, data);
 		break;
@@ -3296,7 +3294,7 @@ static enum hal_buffer scratch_buf_sufficient(struct msm_vidc_inst *inst,
 	if (!bufreq)
 		goto not_sufficient;
 
-	
+	/* Check if current scratch buffers are sufficient */
 	mutex_lock(&inst->scratchbufs.lock);
 
 	list_for_each_entry(buf, &inst->scratchbufs.list, list) {
@@ -3399,7 +3397,7 @@ int msm_comm_release_scratch_buffers(struct msm_vidc_inst *inst,
 			mutex_lock(&inst->scratchbufs.lock);
 		}
 
-		
+		/*If scratch buffers can be reused, do not free the buffers*/
 		if (sufficiency & buf->buffer_type)
 			continue;
 
@@ -3643,7 +3641,7 @@ void msm_comm_flush_dynamic_buffers(struct msm_vidc_inst *inst)
 				dprintk(VIDC_DBG,
 					"released buffer held in driver before issuing flush: 0x%pa fd[0]: %d\n",
 					&binfo->device_addr[0], binfo->fd[0]);
-				
+				/*send event to client*/
 				v4l2_event_queue_fh(&inst->event_handler,
 					&buf_event);
 				wake_up(&inst->kernel_event_queue);
@@ -3760,7 +3758,7 @@ int msm_comm_flush(struct msm_vidc_inst *inst, u32 flags)
 		}
 		mutex_unlock(&inst->pendingq.lock);
 
-		
+		/*Do not send flush in case of session_error */
 		if (!(inst->state == MSM_VIDC_CORE_INVALID &&
 			  core->state != VIDC_CORE_INVALID))
 			rc = call_hfi_op(hdev, session_flush, inst->session,
