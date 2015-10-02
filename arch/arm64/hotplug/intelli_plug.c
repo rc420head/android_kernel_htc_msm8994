@@ -33,7 +33,7 @@
 #define MIN_INPUT_INTERVAL		150 * 1000L
 #define BOOST_LOCK_DUR			1500 * 1000L
 #define DEFAULT_NR_CPUS_BOOSTED		1
-#define DEFAULT_MIN_CPUS_ONLINE		2
+#define DEFAULT_MIN_CPUS_ONLINE		1
 #define DEFAULT_MAX_CPUS_ONLINE		NR_CPUS
 #define DEFAULT_NR_FSHIFT               3
 #define DEFAULT_DOWN_LOCK_DUR		1500
@@ -41,7 +41,7 @@
 
 #define CAPACITY_RESERVE		50
 #if defined(CONFIG_ARCH_MSM8994)
-#define THREAD_CAPACITY                 (1220 - CAPACITY_RESERVE)
+#define THREAD_CAPACITY                 (1420 - CAPACITY_RESERVE)
 #elif defined(CONFIG_ARCH_APQ8084) || defined(CONFIG_ARM64)
 #define THREAD_CAPACITY 		(430 - CAPACITY_RESERVE)
 #elif defined(CONFIG_ARCH_MSM8960) || defined(CONFIG_ARCH_APQ8064) || \
@@ -53,7 +53,7 @@ defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 #else
 #define THREAD_CAPACITY			(250 - CAPACITY_RESERVE)
 #endif
-#define CPU_NR_THRESHOLD		((THREAD_CAPACITY << 1) + (THREAD_CAPACITY / 2))
+#define CPU_NR_THRESHOLD		((THREAD_CAPACITY << 1) + (THREAD_CAPACITY / NR_CPUS))
 #if defined(CONFIG_ARM64)
 #define MULT_FACTOR			16
 #else
@@ -92,7 +92,7 @@ static unsigned int target_cpus = 0;
 static u64 boost_lock_duration = BOOST_LOCK_DUR;
 static unsigned int def_sampling_ms = DEF_SAMPLING_MS;
 static unsigned int nr_fshift = DEFAULT_NR_FSHIFT;
-static unsigned int nr_run_hysteresis = DEFAULT_MAX_CPUS_ONLINE + 4;
+static unsigned int nr_run_hysteresis = DEFAULT_MAX_CPUS_ONLINE;
 static unsigned int debug_intelli_plug = 0;
 
 #define dprintk(msg...)		\
