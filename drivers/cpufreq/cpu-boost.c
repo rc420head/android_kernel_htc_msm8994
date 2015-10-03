@@ -63,6 +63,9 @@ module_param(migration_load_threshold, uint, 0644);
 static bool load_based_syncs;
 module_param(load_based_syncs, bool, 0644);
 
+bool wakeup_boost;
+module_param(wakeup_boost, bool, 0644);
+
 static bool sched_boost_on_input;
 module_param(sched_boost_on_input, bool, 0644);
 
@@ -286,7 +289,6 @@ static int boost_mig_sync_thread(void *data)
 
 		s->boost_min = req_freq;
 
-		
 		get_online_cpus();
 		if (cpu_online(src_cpu))
 			cpufreq_update_policy(src_cpu);
@@ -359,7 +361,6 @@ static int do_input_boost(void *data)
 
 		set_current_state(TASK_RUNNING);
 
-		
 		pr_debug("Setting input boost min for all CPUs\n");
 		for_each_possible_cpu(i) {
 			i_sync_info = &per_cpu(sync_info, i);
@@ -383,7 +384,7 @@ static int do_input_boost(void *data)
 		}
 
 		mutex_lock(&input_boost_lock);
-		
+
 		if (sched_boost_on_input && !sched_boost_active) {
 			ret = sched_set_boost(1);
 			if (ret)
@@ -409,11 +410,9 @@ static void cpuboost_input_event(struct input_handle *handle,
 	if (!input_boost_enabled)
 		return;
 
-	
 	if (type == EV_ABS && code == ABS_MT_TRACKING_ID && value != -1)
 		need_boost = 1;
 
-	
 	if (type == EV_KEY && value == 1 &&
 		(code == KEY_POWER || code == KEY_VOLUMEUP || code == KEY_VOLUMEDOWN))
 		need_boost = 1;
@@ -434,6 +433,16 @@ static void cpuboost_input_event(struct input_handle *handle,
 	queue_delayed_work(cpu_boost_wq, &input_boost_rem, msecs_to_jiffies(input_boost_ms));
 
 	last_input_time = ktime_to_us(ktime_get());
+}
+
+bool check_cpuboost(int cpu)
+{
+	struct cpu_sync *i_sync_info;
+	i_sync_info = &per_cpu(sync_info, cpu);
+
+	if (i_sync_info->input_boost_min > 0)
+		return true;
+	return false;
 }
 
 static int cpuboost_input_connect(struct input_handler *handler,

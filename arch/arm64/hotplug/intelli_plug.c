@@ -31,10 +31,10 @@
 #define RESUME_SAMPLING_MS		HZ * 2
 #define START_DELAY_MS			HZ * 20
 #define MIN_INPUT_INTERVAL		150 * 1000L
-#define BOOST_LOCK_DUR			1500 * 1000L
+#define BOOST_LOCK_DUR			2500 * 1000L
 #define DEFAULT_NR_CPUS_BOOSTED		1
 #define DEFAULT_MIN_CPUS_ONLINE		1
-#define DEFAULT_MAX_CPUS_ONLINE		NR_CPUS
+#define DEFAULT_MAX_CPUS_ONLINE		NR_CPUS/2
 #define DEFAULT_NR_FSHIFT               3
 #define DEFAULT_DOWN_LOCK_DUR		1500
 #define DEFAULT_MAX_CPUS_ONLINE_SUSP	1
@@ -53,7 +53,7 @@ defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 #else
 #define THREAD_CAPACITY			(250 - CAPACITY_RESERVE)
 #endif
-#define CPU_NR_THRESHOLD		((THREAD_CAPACITY << 1) + (THREAD_CAPACITY / NR_CPUS))
+#define CPU_NR_THRESHOLD		((THREAD_CAPACITY << DEFAULT_NR_FSHIFT) + (THREAD_CAPACITY / NR_CPUS))
 #if defined(CONFIG_ARM64)
 #define MULT_FACTOR			16
 #else
@@ -253,11 +253,7 @@ static void __ref cpu_up_down_work(struct work_struct *work)
 		for_each_online_cpu(cpu) {
 			if (cpu == 0)
 				continue;
-#ifdef CONFIG_CPU_BOOST
 			if (check_down_lock(cpu) || check_cpuboost(cpu))
-#else
-			if (check_down_lock(cpu))
-#endif
 				break;
 			l_nr_threshold =
 				cpu_nr_run_threshold << 1 / (num_online_cpus());
@@ -343,7 +339,7 @@ static void __ref intelli_plug_resume(void)
 	}
 
 #ifdef CONFIG_CPU_BOOST
-	if (wakeup_cb_boost || required_wakeup) {
+	if (wakeup_boost || required_wakeup) {
 #else
 	if (required_wakeup) {
 #endif
